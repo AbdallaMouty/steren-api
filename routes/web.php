@@ -1,16 +1,18 @@
 <?php
 
 use App\Http\Controllers\CarController;
+use App\Http\Controllers\WebAdminsController;
 use App\Http\Controllers\WebAdminUserController;
 use App\Http\Controllers\WebCarController;
 use App\Models\AppUser;
 use App\Models\Car;
+use App\Models\User;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
-/*Route::get('/', function () {
+Route::middleware('guest')->get('home', function () {
     return Inertia::render('welcome');
-})->name('home');*/
+})->name('home');
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('dashboard', function () {
@@ -58,7 +60,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     })->name('promotions');
 
     Route::get('emp-settings', function () {
-        return Inertia::render('emp-settings');
+        $data = User::all();
+
+        return Inertia::render('emp-settings', ['data' => $data]);
     })->name('emp-settings');
 
     Route::get('analytics', function () {
@@ -92,6 +96,15 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::post('/{app_user}/suspend', [WebAdminUserController::class, 'suspend']);
         Route::post('/{app_user}/restore', [WebAdminUserController::class, 'restore']);
         Route::post('/{app_user}/authorize', [WebAdminUserController::class, 'authorize']);
+    });
+
+    Route::prefix('admins')->group(function () {
+        Route::post('/', [WebAdminsController::class, 'store']);
+        Route::post('/{user}', [WebAdminsController::class, 'update']);
+        Route::delete('/{user}', [WebAdminsController::class, 'destroy']);
+        Route::post('/{user}/suspend', [WebAdminsController::class, 'suspend']);
+        Route::post('/{user}/restore', [WebAdminsController::class, 'restore']);
+        Route::post('/{user}/authorize', [WebAdminsController::class, 'authorize']);
     });
 });
 

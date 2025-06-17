@@ -1,6 +1,8 @@
 <?php
 
+use App\Http\Controllers\Api\AdController;
 use App\Http\Controllers\Auth\AppAuthController;
+use App\Http\Controllers\AdminAccountController;
 use App\Http\Controllers\AdminUserController;
 use App\Http\Controllers\CarController;
 use Illuminate\Http\Request;
@@ -39,8 +41,6 @@ Route::middleware('auth:sanctum')->prefix('users')->group(function () {
     Route::post('/{user}/restore', [AdminUserController::class, 'restore']);
 });
 
-use App\Http\Controllers\AdminAccountController;
-
 Route::middleware('auth:sanctum')->prefix('admin')->group(function () {
     Route::get('/admins', [AdminAccountController::class, 'index']);
     Route::post('/admins', [AdminAccountController::class, 'store']);
@@ -49,3 +49,6 @@ Route::middleware('auth:sanctum')->prefix('admin')->group(function () {
     Route::post('/admins/{user}/suspend', [AdminAccountController::class, 'suspend']);
     Route::post('/admins/{user}/restore', [AdminAccountController::class, 'restore']);
 });
+
+Route::get('/ads', [AdController::class, 'index']);
+Route::post('/ads', [AdController::class, 'store']);

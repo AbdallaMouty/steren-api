@@ -5,9 +5,10 @@ import { Switch } from '@/components/ui/switch';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import AppLayout from '@/layouts/app-layout';
 import { BreadcrumbItem } from '@/types';
-import { Head } from '@inertiajs/react';
+import { Head, router } from '@inertiajs/react';
 import { Pen, Trash2 } from 'lucide-react';
 import { useState } from 'react';
+import { toast } from 'sonner';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -15,41 +16,93 @@ const breadcrumbs: BreadcrumbItem[] = [
         href: '/emp-settings',
     },
 ];
-export default function EmpSettings() {
-    const languages = ['English', 'كوردى', 'العربية'];
-    const [langIndex, setLangIndex] = useState(0);
 
-    const currencies = ['USD', 'IQD'];
-    const [curIndex, setCurIndex] = useState(0);
+interface User {
+    id: number;
+    name: string;
+    role: string;
+    active: number;
+    email: string;
+    password: string;
+}
 
-    const initialEmps = [
-        {
-            id: 1,
-            name: 'Ahmed Khalid',
-            role: 'Super Admin',
-            active: true,
-        },
-        {
-            id: 2,
-            name: 'Noor Alwan',
-            role: 'Admin',
-            active: true,
-        },
-        {
-            id: 3,
-            name: 'Ahmed Khalid',
-            role: 'Admin',
-            active: false,
-        },
-    ];
+interface Props {
+    data: User[];
+}
 
-    const [emps, setEmps] = useState(initialEmps);
+export default function EmpSettings(props: Props) {
+    //const languages = ['English', 'كوردى', 'العربية'];
+    //const [langIndex, setLangIndex] = useState(0);
+
+    //const currencies = ['USD', 'IQD'];
+    //const [curIndex, setCurIndex] = useState(0);
+
     const [addModal, setAddModal] = useState(false);
     const [name, setName] = useState('');
     const [role, setRole] = useState('');
     const [active, setActive] = useState(true);
     const [selectedEmp, setSelectedEmp] = useState(0);
     const [edit, setEdit] = useState(false);
+    const [password, setPassword] = useState('');
+    const [email, setEmail] = useState('');
+
+    const handleNewEmp = () => {
+        const formData = new FormData();
+        formData.append('name', name);
+        formData.append('email', email);
+        formData.append('role', role);
+        formData.append('password', password);
+        router.post('/admins', formData, {
+            onError: (errors) => {
+                // Laravel puts custom errors under `errors.message`
+                if (errors.message) {
+                    toast.error(errors.message, { style: { backgroundColor: 'red', color: 'white' } });
+                } else {
+                    toast.error('Something went wrong.', { className: 'bg-red-600 text-white' });
+                }
+                console.log(errors);
+            },
+            onSuccess: () => {
+                toast.success('User created successfully.', { style: { backgroundColor: 'green', color: 'white' } });
+            },
+        });
+    };
+
+    const handleEditEmp = (id: number | string) => {
+        const formData = new FormData();
+        formData.append('name', name);
+        formData.append('email', email);
+        formData.append('role', role);
+        router.post(`/admins/${id}`, formData, {
+            onError: (errors) => {
+                // Laravel puts custom errors under `errors.message`
+                if (errors.message) {
+                    toast.error(errors.message, { style: { backgroundColor: 'red', color: 'white' } });
+                } else {
+                    toast.error('Something went wrong.', { className: 'bg-red-600 text-white' });
+                }
+            },
+            onSuccess: () => {
+                toast.success('User updated successfully.', { style: { backgroundColor: 'green', color: 'white' } });
+            },
+        });
+    };
+
+    const handleDelete = (id: number | string) => {
+        router.delete(`/admins/${id}`, {
+            onError: (errors) => {
+                // Laravel puts custom errors under `errors.message`
+                if (errors.message) {
+                    toast.error(errors.message, { style: { backgroundColor: 'red', color: 'white' } });
+                } else {
+                    toast.error('Something went wrong.', { className: 'bg-red-600 text-white' });
+                }
+            },
+            onSuccess: () => {
+                toast.success('User deleted successfully.', { style: { backgroundColor: 'green', color: 'white' } });
+            },
+        });
+    };
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
@@ -60,7 +113,7 @@ export default function EmpSettings() {
                         <CardTitle>Platform Settings</CardTitle>
                     </CardHeader>
                     <CardContent>
-                        <div className="flex w-full items-center justify-start gap-20">
+                        {/*                        <div className="flex w-full items-center justify-start gap-20">
                             <div className="flex flex-col items-start justify-start gap-2">
                                 <h1>Language</h1>
                                 <Button variant={'outline'} className="hover:bg-background flex items-center justify-center gap-2 px-0 py-2">
@@ -107,7 +160,7 @@ export default function EmpSettings() {
                                 <h1>Free Duration</h1>
                                 <Input value={`30 days`} />
                             </div>
-                        </div>
+                                </div>*/}
                         <div className="mt-10">
                             <div className="flex w-full items-center justify-between">
                                 <h1>Employee Role Management</h1>
@@ -124,22 +177,18 @@ export default function EmpSettings() {
                                         </TableRow>
                                     </TableHeader>
                                     <TableBody>
-                                        {emps.map((emp) => (
+                                        {props.data.map((emp) => (
                                             <TableRow>
                                                 <TableCell className="pl-10">{emp.name}</TableCell>
                                                 <TableCell>{emp.role}</TableCell>
-                                                <TableCell>
-                                                    <Button
-                                                        variant={'outline'}
-                                                        className={`${emp.active ? 'bg-green-500' : 'bg-red-500'} aspect-square w-3 rounded-full`}
-                                                    />{' '}
-                                                    {emp.active ? 'Active' : 'Suspended'}{' '}
+                                                <TableCell className="flex items-center justify-start gap-1 pt-4">
+                                                    <div className={`aspect-square h-5 w-5 rounded-full bg-green-500`} /> Active
                                                 </TableCell>
                                                 <TableCell>
                                                     <div className="flex items-center justify-start gap-7">
                                                         <div className="flex items-center justify-center gap-1">
                                                             <Button
-                                                                onClick={() => setEmps((prev) => prev.filter((e) => e.id !== emp.id))}
+                                                                onClick={() => handleDelete(emp.id)}
                                                                 variant={'outline'}
                                                                 size={'icon'}
                                                                 className="border-none bg-transparent text-red-500 shadow-none hover:bg-red-500 hover:text-white"
@@ -154,8 +203,9 @@ export default function EmpSettings() {
                                                                     setSelectedEmp(emp.id);
                                                                     setName(emp.name);
                                                                     setRole(emp.role);
-                                                                    setActive(emp.active);
+                                                                    //setActive(emp.active);
                                                                     setAddModal(true);
+                                                                    setEmail(emp.email);
                                                                     setEdit(true);
                                                                 }}
                                                                 variant={'outline'}
@@ -190,6 +240,16 @@ export default function EmpSettings() {
                                     <h1>Name</h1>
                                     <Input required value={name} onChange={(e) => setName(e.target.value)} />
                                 </div>
+                                <div className="flex w-full flex-col items-start justify-start">
+                                    <h1>Email</h1>
+                                    <Input required value={email} onChange={(e) => setEmail(e.target.value)} />
+                                </div>
+                                {!edit && (
+                                    <div className="flex w-full flex-col items-start justify-start">
+                                        <h1>Password</h1>
+                                        <Input required value={password} onChange={(e) => setPassword(e.target.value)} />
+                                    </div>
+                                )}
                                 <div className="mt-3 flex w-full flex-col items-start justify-start">
                                     <h1>Role</h1>
                                     <Input required value={role} onChange={(e) => setRole(e.target.value)} />
@@ -204,16 +264,9 @@ export default function EmpSettings() {
                                     <Button
                                         onClick={() => {
                                             if (edit) {
-                                                setEmps((prev) =>
-                                                    prev.map((e) => {
-                                                        if (e.id === selectedEmp) {
-                                                            return { id: e.id, name, role, active };
-                                                        }
-                                                        return e;
-                                                    }),
-                                                );
+                                                handleEditEmp(selectedEmp);
                                             } else {
-                                                setEmps((prev) => [...prev, { id: prev.length + 1, name, role, active }]);
+                                                handleNewEmp();
                                             }
                                             setAddModal(false);
                                             setName('');
